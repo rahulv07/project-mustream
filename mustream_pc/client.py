@@ -1,7 +1,7 @@
 import socket
 import threading
 
-hosts = ['192.168.xx.15']  # The server's hostname or IP address
+hosts = ['192.168.60.218']  # The server's hostname or IP address
 port = 4444       # The port used by the server
 
 def threadFunction(host,port,data):
