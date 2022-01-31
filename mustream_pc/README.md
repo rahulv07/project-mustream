@@ -1,3 +1,3 @@
 # Mustream
-## Desktop app for PCs and laptops.
+## Desktop app for PCs and Laptops.
 Under Construction...
