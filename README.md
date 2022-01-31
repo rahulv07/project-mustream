@@ -1,3 +1,3 @@
 # Mustream
-## A Network Sound Amplifier
+## A Network Sound Amplifier.
 Under Construction...
