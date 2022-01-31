@@ -1,7 +1,7 @@
 import socket
 import threading, wave, pyaudio,pickle,struct
 
-host_ip = '192.168.253.63'#  socket.gethostbyname(host_name)
+host_ip = '192.168.2.211'#  socket.gethostbyname(host_name)
 port = 4444
 
 def audio_stream():
@@ -27,18 +27,23 @@ def audio_stream():
 
     (nchannels,sampwidth,fs,nframes,_,_) = wf.getparams()
 
-    readData = 0
-    npackets = 1
-    while True:
-        data = wf.readframes(CHUNK)
-        readData = readData + (CHUNK*sampwidth)
-        a = pickle.dumps(data)
-        message = struct.pack("Q",len(a))+a
-        server_socket.sendall(message)
-        if(readData>=sampwidth*nframes): break
-        print(f"Packets sent: {npackets}")
-        npackets = npackets+1
+    # readData = 0
+    # npackets = 1
+    # while True:
+    #     data = wf.readframes(CHUNK)
+    #     readData = readData + (CHUNK*sampwidth)
+    #     a = pickle.dumps(data)
+    #     message = struct.pack("Q",len(a))+a
+    #     server_socket.sendall(message)
+    #     if(readData>=sampwidth*nframes): break
+    #     print(f"Packets sent: {npackets}")
+    #     npackets = npackets+1
                 
+    data = wf.readframes(nframes)
+    a = pickle.dumps(data)
+    message = struct.pack("Q",len(a))+a
+    server_socket.sendall(message)
+    
 t1 = threading.Thread(target=audio_stream, args=())
 t1.start()
 
