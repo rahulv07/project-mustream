@@ -19,8 +19,7 @@ void handleConnection(Socket client) {
   client.listen(
     (Uint8List data) async {
       await Future.delayed(Duration(seconds: 1));
-      final message = String.fromCharCodes(data);
-      print(message);
+      print(data.length);
     },
 
     // handle errors
