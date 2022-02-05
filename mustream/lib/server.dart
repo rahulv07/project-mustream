@@ -27,7 +27,7 @@ class Server {
       (Uint8List data) async {
         bytesBuilder.add(data);
 
-        if (bytesBuilder.length == 30764) {
+        if (bytesBuilder.length == 14380) {
           print("Recieved packet");
           audio.playByteStream(bytesList: bytesBuilder.takeBytes());
         }
