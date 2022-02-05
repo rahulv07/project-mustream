@@ -4,10 +4,11 @@ import scipy.io.wavfile as wav
 import wave
 import struct
 import sys
+from mySocket import MySocket
 
-def recordAudio():
-    RATE=16000
-    RECORD_SECONDS = 7
+def recordAudio(seconds=1,rate=16000):
+    RATE=rate
+    RECORD_SECONDS = seconds
     CHUNKSIZE = 1024
 
     # initialize portaudio
@@ -29,26 +30,10 @@ def recordAudio():
     p.terminate()
 
     #wav.write('out.wav',RATE,numpydata)
-    generateWAVdata(RATE,numpydata)
-    
-def readAudio(name):
-    audioData = np.fromfile(name,dtype=np.uint8)
-    print(audioData[0:11])
-    
+    wavBytes = generateWAVdata(RATE,numpydata)
+    return wavBytes
 
 def generateWAVdata(rate, data):
-    """
-    =====================  ===========  ===========  =============
-         WAV format            Min          Max       NumPy dtype
-    =====================  ===========  ===========  =============
-    32-bit floating-point  -1.0         +1.0         float32
-    32-bit PCM             -2147483648  +2147483647  int32
-    16-bit PCM             -32768       +32767       int16
-    8-bit PCM              0            255          uint8
-    =====================  ===========  ===========  =============
-
-    Note that 8-bit PCM is unsigned.
-    """
     output = b''
     wavBytes = b'RIFF'
     fs = rate
@@ -59,11 +44,7 @@ def generateWAVdata(rate, data):
                                                  data.dtype.itemsize == 1)):
             raise ValueError("Unsupported data type '%s'" % data.dtype)
 
-        header_data = b''
-
-        # header_data += b'RIFF'
-        # header_data += b'\x00\x00\x00\x00'
-        header_data += b'WAVE'
+        header_data = b'WAVE'
 
         # fmt chunk
         header_data += b'fmt '
@@ -109,17 +90,49 @@ def generateWAVdata(rate, data):
 
         # Determine file size and place it in correct
         #  position at start of the file.
-        size = len(output) + 8
-        wavBytes += struct.pack('<I', size-8)
+        size = len(output)
+        wavBytes += struct.pack('<I', size)
         wavBytes += output
 
     finally:
-        # if not hasattr(filename, 'write'):
-        #     fid.close()
-        # else:
-        #     fid.seek(0)
-        wavData = np.frombuffer(wavBytes,dtype=np.uint8)
-        print(len(wavData))
-        print(wavData[0:11])
+        return wavBytes
 
-recordAudio()
+def recordEverySec():
+    RATE=16000
+    RECORD_SECONDS = 1
+    CHUNKSIZE = 1024
+
+    # initialize portaudio
+    p = pyaudio.PyAudio()
+    stream = p.open(format=pyaudio.paInt16, channels=1, rate=RATE, input=True, frames_per_buffer=CHUNKSIZE)
+
+    print("Recording started...")
+    
+    server = MySocket()
+    server.openSocket(HOST='192.168.255.70',PORT=5902)
+    
+    while True:
+        frames = [] # A python-list of chunks(numpy.ndarray)
+        try:
+            for _ in range(0, int(RATE / CHUNKSIZE * RECORD_SECONDS)):
+                data = stream.read(CHUNKSIZE)
+                frames.append(np.frombuffer(data, dtype=np.int16))
+
+            #Convert the list of numpy-arrays into a 1D array (column-wise)
+            numpydata = np.hstack(frames)
+            
+            #wav.write('out.wav',RATE,numpydata)
+            wavBytes = generateWAVdata(RATE,numpydata)
+            server.sendPackets(wavBytes)
+            print(f"Sent {len(wavBytes)} bytes ")
+            
+        except KeyboardInterrupt:
+             # close stream
+            stream.stop_stream()
+            stream.close()
+            p.terminate()
+            server.closeSocket()
+            break
+    
+    print()
+    print("Recording Stopped")

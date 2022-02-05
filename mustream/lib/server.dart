@@ -22,11 +22,13 @@ class Server {
     print('Connection from'
         ' ${client.remoteAddress.address}:${client.remotePort}');
 
+    bytesBuilder.clear();
+
     // listen for events from the client
     client.listen(
       (Uint8List data) async {
         print(data.length);
-        bytesBuilder.add(data);
+        // bytesBuilder.add(data);
       },
 
       // handle errors
@@ -39,12 +41,12 @@ class Server {
       onDone: () async {
         print('Client left');
         client.close();
-        var receivedData = bytesBuilder.toBytes();
-        print("Total received bytes: ${receivedData.length}");
+        // var receivedData = bytesBuilder.toBytes();
+        // print("Total received bytes: ${receivedData.length}");
 
-        print("Playing audio...");
-        Audio audio = Audio();
-        await audio.playByteStream(bytesList: receivedData);
+        // print("Playing audio...");
+        // Audio audio = Audio();
+        // await audio.playByteStream(bytesList: receivedData);
       },
     );
   }
