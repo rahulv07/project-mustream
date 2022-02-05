@@ -1,5 +1,8 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'dart:collection';
+
+import 'audio.dart';
 
 void main() async {
   final server = await ServerSocket.bind(InternetAddress.anyIPv4, 5902);
@@ -14,12 +17,11 @@ void main() async {
 void handleConnection(Socket client) {
   print('Connection from'
       ' ${client.remoteAddress.address}:${client.remotePort}');
-
+  int packetNo = 0;
   // listen for events from the client
   client.listen(
     (Uint8List data) async {
-      await Future.delayed(Duration(seconds: 1));
-      print(data.length);
+      print(data.sublist(0, 11));
     },
 
     // handle errors
@@ -30,7 +32,6 @@ void handleConnection(Socket client) {
 
     // handle the client closing the connection
     onDone: () {
-      print('Client left');
       client.close();
     },
   );

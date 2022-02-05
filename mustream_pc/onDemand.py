@@ -1,5 +1,6 @@
 import socket
 import wave
+import time
 
 wf = wave.open("temp.wav")
 
@@ -7,7 +8,7 @@ wf = wave.open("temp.wav")
 
 buffer = sampWidth * fs
 
-HOST = '192.168.87.161' 
+HOST = '192.168.194.147'
 PORT = 5902
 
 f = open("temp.wav","rb")
@@ -21,5 +22,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.sendall(packet)
         i = i+1
         print(f"Sending packet: {i}")
+        time.sleep(0.25)
 
 print("Transfer done")

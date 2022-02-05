@@ -4,6 +4,8 @@ import 'package:mustream/audio.dart';
 
 class Server {
   var bytesBuilder = BytesBuilder();
+  Audio audio = Audio();
+
   Future<void> initiate() async {
     final server =
         await ServerSocket.bind(InternetAddress.anyIPv4, 5902, shared: true);
@@ -16,6 +18,7 @@ class Server {
   }
 
   void handleConnection(Socket client) {
+    Audio audio = Audio();
     print('Connection from'
         ' ${client.remoteAddress.address}:${client.remotePort}');
 
@@ -35,9 +38,10 @@ class Server {
       // handle the client closing the connection
       onDone: () async {
         print('Client left');
+        client.close();
         var receivedData = bytesBuilder.toBytes();
         print("Total received bytes: ${receivedData.length}");
-        client.close();
+
         print("Playing audio...");
         Audio audio = Audio();
         await audio.playByteStream(bytesList: receivedData);
