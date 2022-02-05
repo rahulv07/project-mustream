@@ -109,7 +109,7 @@ def recordEverySec():
     print("Recording started...")
     
     server = MySocket()
-    server.openSocket(HOST='192.168.255.70',PORT=5902)
+    server.openSocket(HOST='192.168.148.128',PORT=5902)
     
     while True:
         frames = [] # A python-list of chunks(numpy.ndarray)
