@@ -3,9 +3,6 @@ import 'dart:typed_data';
 import 'package:mustream/audio.dart';
 
 class Server {
-  var bytesBuilder = BytesBuilder();
-  Audio audio = Audio();
-
   Future<void> initiate() async {
     final server =
         await ServerSocket.bind(InternetAddress.anyIPv4, 5902, shared: true);
@@ -17,18 +14,23 @@ class Server {
     });
   }
 
-  void handleConnection(Socket client) {
-    Audio audio = Audio();
+  void handleConnection(Socket client) async {
     print('Connection from'
         ' ${client.remoteAddress.address}:${client.remotePort}');
 
-    bytesBuilder.clear();
+    var bytesBuilder = BytesBuilder();
+    Audio audio = Audio();
+    await audio.setPlayer();
 
     // listen for events from the client
     client.listen(
       (Uint8List data) async {
-        print(data.length);
-        // bytesBuilder.add(data);
+        bytesBuilder.add(data);
+
+        if (bytesBuilder.length == 30764) {
+          print("Recieved packet");
+          audio.playByteStream(bytesList: bytesBuilder.takeBytes());
+        }
       },
 
       // handle errors
@@ -41,12 +43,6 @@ class Server {
       onDone: () async {
         print('Client left');
         client.close();
-        // var receivedData = bytesBuilder.toBytes();
-        // print("Total received bytes: ${receivedData.length}");
-
-        // print("Playing audio...");
-        // Audio audio = Audio();
-        // await audio.playByteStream(bytesList: receivedData);
       },
     );
   }
