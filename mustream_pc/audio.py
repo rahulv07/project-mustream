@@ -125,5 +125,4 @@ class Audio:
         
         print()
         print("Recording Stopped")
-        
 
