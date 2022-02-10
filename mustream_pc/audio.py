@@ -3,6 +3,7 @@ import numpy as np
 import struct
 import sys
 from mySocket import MySocket
+import subprocess
 
 class Audio:
 
@@ -85,34 +86,39 @@ class Audio:
         finally:
             return wavBytes
 
-    def recordNtransmit(self,seconds=0.5):
-        """
-        Function that records audio and transmits over sockets continuously
+    def speakerTransmit(self,seconds=1):
+        recordSpeakerCommand = "pacmd set-default-source alsa_output.pci-0000_00_1b.0.analog-stereo.monitor"
+        recordMicCommand = "pacmd set-default-source alsa_input.pci-0000_00_1b.0.analog-stereo"
         
-        Args:
-            seconds (float, optional): Number of seconds to record, before transmitting. Defaults to 0.5.
-        """
-        RATE=16000
+        try:
+            subprocess.call(recordSpeakerCommand,shell=True)
+        except Exception as e:
+            print("Error: "+str(e))
+
+        RATE=44000
         RECORD_SECONDS = seconds
         CHUNKSIZE = 1024
+        CHANNELS = 1
+        FORMAT = pyaudio.paInt16
 
         # initialize portaudio
         p = pyaudio.PyAudio()
-        stream = p.open(format=pyaudio.paInt16, channels=1, rate=RATE, input=True, frames_per_buffer=CHUNKSIZE)
+        stream = p.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=CHUNKSIZE)
 
-        print("Recording started...")
-        
+        print("Recording started...")        
+       
         while True:
             frames = []
             try:
                 for _ in range(0, int(RATE / CHUNKSIZE * RECORD_SECONDS)):
                     data = stream.read(CHUNKSIZE)
                     frames.append(np.frombuffer(data, dtype=np.int16))
-
+                
                 #Convert the list of numpy-arrays into a 1D array (column-wise)
                 numpydata = np.hstack(frames)
                 
                 wavBytes = self.generateWAVdata(RATE,numpydata)
+
                 self.mySocket.sendPackets(wavBytes)
                 print(f"Sent {len(wavBytes)} bytes ")
                 
@@ -122,7 +128,10 @@ class Audio:
                 p.terminate()
                 self.mySocket.closeSocket()
                 break
-        
-        print()
-        print("Recording Stopped")
 
+        try:
+            subprocess.call(recordMicCommand,shell=True)
+        except Exception as e:
+            print("Error: "+str(e))
+        
+       
