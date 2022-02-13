@@ -1,12 +1,38 @@
-import numpy as np
 from audio import Audio
-from scipy.io import wavfile
+from mySocket import MySocket
 
-host = '192.168.160.110'
-port = 5902
+if __name__ == "__main__":
+    
+    audio = Audio()
+    audio.startPyAudio(fs=44000,channels=1,chunkSize=1024)
 
-audio = Audio(host,port)
-audio.speakerTransmit()
-
-
-#At 44k sampling rate, packets of size 86060 bytes are transmitted every second
+    mySocket = MySocket()
+    
+    print(f"\nServer IP address: {mySocket.getIP()}")
+    
+    mySocket.startServer(port=5902)
+    (client,addr) = mySocket.getClient()
+    print(f"Connected {addr}")
+    
+    audio.setSpeakerAsInput()
+    
+    print("Recording Started...")
+    i = 0
+    
+    while True:
+        try:
+            audioPacket = audio.record(seconds=1)
+            client.sendall(audioPacket)
+            print(f"Sent {len(audioPacket)} bytes")
+            i = i+1
+            response = client.recv(1024)
+        except KeyboardInterrupt:
+            audio.closePyAudio()
+            client.close()
+            break
+        
+    print("Recording Stopped!")
+    print(f"Packets sent: {i}")
+    
+    
+    audio.setMicAsInput()
