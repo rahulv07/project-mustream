@@ -29,6 +29,7 @@ if __name__ == "__main__":
         except KeyboardInterrupt:
             audio.closePyAudio()
             client.close()
+            mySocket.closeServer()
             break
         
     print("Recording Stopped!")

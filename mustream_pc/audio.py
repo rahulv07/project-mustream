@@ -94,17 +94,19 @@ class Audio:
             self.linuxMicAsInput()
                 
     def linuxSpeakerAsInput(self):
-        setSpeakerLoopbackCommand = "pacmd load-module module-loopback latency_msec=5"
+        setLoopbackCommand = "pacmd load-module module-loopback latency_msec=1"
         recordSpeakerCommand = "pacmd set-default-source alsa_output.pci-0000_00_1b.0.analog-stereo.monitor"
         try:
-            subprocess.call(setSpeakerLoopbackCommand,shell=True)
+            subprocess.call(setLoopbackCommand,shell=True)
             subprocess.call(recordSpeakerCommand,shell=True)
         except Exception as e:
             print("Error: "+str(e))
 
     def linuxMicAsInput(self):
+        resetLoopbackCommand = "pacmd unload-module module-loopback"
         recordMicCommand = "pacmd set-default-source alsa_input.pci-0000_00_1b.0.analog-stereo"
         try:
+            subprocess.call(resetLoopbackCommand,shell=True)
             subprocess.call(recordMicCommand,shell=True)
         except Exception as e:
             print("Error: "+str(e))

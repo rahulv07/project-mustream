@@ -17,3 +17,6 @@ class MySocket:
             s.connect(("8.8.8.8", 80))
             ip = s.getsockname()[0]
             return ip
+        
+    def closeServer(self):
+        self.s.close()
